@@ -26,6 +26,11 @@ public class ImageService extends Service {
     public void onCreate() {
         super.onCreate();
 
+
+    }
+
+    public int onStartCommand(Intent intent, int flag, int startId) {
+
         final IntentFilter theFilter = new IntentFilter();
         theFilter.addAction("android.net.wifi.supplicant.CONNECTION_CHANGE");
         theFilter.addAction("android.net.wifi.STATE_CHANGE");
@@ -45,11 +50,10 @@ public class ImageService extends Service {
             }
         };
         this.registerReceiver(this.broadcastReceiver, theFilter);
-    }
-
-    public int onStartCommand(Intent intent, int flag, int startId) {
         Toast.makeText(this, "Service starting...", Toast.LENGTH_SHORT).show();
         return START_STICKY;
+
+
     }
 
     public void onDestroy() {
