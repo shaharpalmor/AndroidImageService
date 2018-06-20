@@ -17,13 +17,15 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class TcpConnection {
 
     private Socket socket;
     private OutputStream outputStream;
-
+    private List<File> allFiles;
     public TcpConnection() {
     }
 
@@ -42,6 +44,38 @@ public class TcpConnection {
 
     }
 
+    public void getAllFilesFromAllDirs() {
+        File dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        //get the dirs
+        File[] fileOrDir = dcim.listFiles();
+        List<File> picsFilesList = new ArrayList<File>();
+        int len =fileOrDir.length;
+        if (fileOrDir != null) {
+            for (int i=0; i <len; i++) {
+                //check if dir
+                if (fileOrDir[i].isDirectory()) {
+                    getOneFile(fileOrDir[i], picsFilesList);
+                } else if(fileOrDir[i].toString().contains(".jpg")) { //check if file
+                    picsFilesList.add(fileOrDir[i]);
+                }
+            }
+        }
+        //update the member
+        allFiles = picsFilesList;
+    }
+
+    public void getOneFile(File dir, List<File> picsFilesList) {
+        File[] dirFiles = dir.listFiles();
+        int len = dirFiles.length;
+        for (int i=0; i <len; i++) {
+            if (dirFiles[i].isDirectory()) {
+                getOneFile(dirFiles[i], picsFilesList);
+            } else if(dirFiles[i].toString().contains(".jpg")) {
+                picsFilesList.add(dirFiles[i]);
+            }
+        }
+    }
+
     public void startConnection(final NotificationManager notificationManager, final NotificationCompat.Builder builder) {
 
         Thread thread = new Thread(new Runnable() {
@@ -49,16 +83,18 @@ public class TcpConnection {
             public void run() {
                 connect();
                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream));
-                File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
-                if (dcim == null) {
-                    return;
-                }
-                File[] files = dcim.listFiles();
-                double numberOfPictures = files.length;
+                //File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
+                //if (dcim == null) {
+                  //  return;
+                //}
+
+                //File[] files = dcim.listFiles();
+                getAllFilesFromAllDirs();
+                double numberOfPictures = allFiles.size();
                 double count = 0;
 
-                if (files != null) {
-                    for (File file : files) {
+                if (allFiles != null) {
+                    for (File file : allFiles) {
                         try {
                             FileInputStream fis = new FileInputStream(file);
                             Bitmap bm = BitmapFactory.decodeStream(fis);
